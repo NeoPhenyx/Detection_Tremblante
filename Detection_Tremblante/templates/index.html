@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>🐑 Détection de la Tremblante</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            text-align: center;
+            margin: 40px;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            display: inline-block;
+            width: 80%;
+            max-width: 650px;
+        }
+
+        /* === En-tête avec logo et titre === */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 100px;
+            height: auto;
+        }
+
+        img.analysis {
+            width: 250px;
+            margin: 10px;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+        }
+
+        input[type=file] {
+            margin: 20px 0;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin: 0;
+        }
+
+        h3 {
+            color: #333;
+        }
+
+        .diagnostic {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .error {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        /* === Spinner === */
+        #spinner {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* === Section À propos === */
+        #about {
+            display: none;
+            background: #eef9ee;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 10px;
+            text-align: left;
+        }
+        #about h2 {
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- === En-tête avec logo et titre === -->
+       <div class="header">
+             <img src="{{ url_for('static', filename='Logo_Cegep_de_Sainte-Foy.svg') }}" 
+              class="logo">
+             <h1>🐑 Détection de la Tremblante</h1>
+        </div>
+
+        <p>Upload une image de mouton pour tester le modèle autoencoder (.pkl)</p>
+
+        <!-- === Formulaire === -->
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+            {% if error_msg %}
+                <p class="error">{{ error_msg }}</p>
+            {% endif %}
+            <input type="file" name="file" accept="image/*" required>
+            <br>
+            <button type="submit">Analyser l’image</button>
+            <button type="button" id="aboutBtn">À propos</button>
+
+            <!-- Spinner pendant le traitement -->
+            <div id="spinner">
+                <div class="loader"></div>
+                <p>Analyse en cours...</p>
+            </div>
+        </form>
+
+        <!-- === Résultat === -->
+        {% if mse_score is defined or diagnostic is defined %}
+            <h3>Résultat :</h3>
+
+            {% if original_image %}
+                <img src="{{ original_image }}" alt="Image originale" class="analysis">
+            {% endif %}
+
+            {% if reconstructed_image %}
+                <img src="{{ reconstructed_image }}" alt="Image reconstruite" class="analysis">
+            {% endif %}
+
+            {% if mse_score is defined %}
+                <p><b>Erreur MSE :</b> {{ "%.6f"|format(mse_score) }}</p>
+            {% endif %}
+
+            {% if diagnostic %}
+                <p class="diagnostic" style="color: {{ color }};">{{ diagnostic }}</p>
+            {% endif %}
+        {% endif %}
+
+        <!-- === Section À propos === -->
+        <div id="about">
+            <h2>À propos de la Tremblante du mouton</h2>
+            <p>
+                La <b>tremblante</b>, ou <i>scrapie</i>, est une maladie neurodégénérative qui touche principalement les moutons et les chèvres.
+                Elle est causée par un <b>prion</b> (protéine anormale) qui provoque la dégénérescence progressive du système nerveux central.
+            </p>
+            <p>
+                Les symptômes incluent des <b>tremblements</b>, une <b>perte de coordination</b>, un <b>amaigrissement</b> et parfois des changements de comportement.
+                La maladie est <b>incurable</b> et entraîne la mort de l’animal à long terme.
+            </p>
+            <p>
+                Le diagnostic repose sur des examens histopathologiques ou, comme dans cette application, sur l’analyse d’images par des modèles d’<b>apprentissage automatique</b> pour détecter des anomalies précoces.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Affiche le spinner pendant le traitement
+        document.getElementById("uploadForm").addEventListener("submit", function() {
+            document.getElementById("spinner").style.display = "block";
+        });
+
+        // Affiche ou masque la section À propos
+        document.getElementById("aboutBtn").addEventListener("click", function() {
+            const aboutSection = document.getElementById("about");
+            if (aboutSection.style.display === "none") {
+                aboutSection.style.display = "block";
+                this.textContent = "Fermer";
+            } else {
+                aboutSection.style.display = "none";
+                this.textContent = "À propos";
+            }
+        });
+    </script>
+</body>
+</html>
